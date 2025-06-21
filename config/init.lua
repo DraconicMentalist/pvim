@@ -1,7 +1,11 @@
-local vim = vim
 local Plug = vim.fn['plug#']
+basedir = os.getenv("PVIM")
 
-vim.call('plug#begin', (os.getenv("PVIM") .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
+for _, name in ipairs({ "config", "data", "state", "cache" }) do
+    vim.env[("XDG_%s_HOME"):format(name:upper())] = basedir .. "/nvim-data/" .. name
+end 
+
+vim.call('plug#begin', (basedir .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
 -------------------
 ------ libraries
 -------------------
@@ -9,11 +13,12 @@ vim.call('plug#begin', (os.getenv("PVIM") .. "/config/plugged/")) -- initialize 
 Plug("nvim-lua/plenary.nvim") --
 -- library for parsing text being entered in command mode.
 Plug("winston0410/cmd-parser.nvim")
+Plug("nvim-tree/nvim-web-devicons") ---
 -------------------
 ------ LSP and syntax highlighting
 -------------------
 --- treesitter does syntax highlighting, lspconfig handles language servers, mason is a package manager FOR language servers.
-Plug("nvim-treesitter/nvim-treesitter", { ["do"] = ":TSUpdate" })
+Plug("nvim-treesitter/nvim-treesitter")
 Plug("neovim/nvim-lspconfig")
 Plug("mason-org/mason.nvim")
 Plug("williamboman/mason-lspconfig.nvim")
@@ -57,7 +62,7 @@ Plug('ahmedkhalf/project.nvim')
 Plug("zaldih/themery.nvim")
 -- simple and uncontroversial
 Plug("folke/tokyonight.nvim")
-
+Plug("markbahnman/vim-pico8-color")
 
 vim.call('plug#end')
 
@@ -103,16 +108,14 @@ vim.api.nvim_create_autocmd("LspAttach",
     }
 )
 
----------------------------
---- treesitter settings
----------------------------
-require 'nvim-treesitter.configs'.setup { highlight = { enable = true } }
+
 ---------------------------
 --- mason setup
 ---------------------------
 require("mason").setup()
 require("mason-lspconfig").setup(
     {
+        automatic_enable = true,
         handlers = {
             function(server_name)
                 require("lspconfig")[server_name].setup({})
@@ -120,6 +123,22 @@ require("mason-lspconfig").setup(
         }
     }
 )
+---------------------------
+--- treesitter settings
+---------------------------
+local parser_dir = basedir .. "/clutter/treesitter/"
+
+local TSconfig = require("nvim-treesitter.configs")
+TSconfig.setup({
+  ensure_installed = {"markdown", "markdown_inline", "yaml"},
+  highlight = {
+      enable = true,
+      additional_vim_regex_highlighting = false
+  },
+      indent = {enable = true}
+})
+vim.treesitter.language.register("lua", "p8") -- make pico8 files syntax highlight as lua
+
 
 ---------------------------
 --- completion setup
@@ -176,6 +195,7 @@ require("nvim-tree").setup({
     require("themery").setup(
         {
             themes = {
+                "pico8",
                 "tokyonight",
                 "tokyonight-night",
                 "tokyonight-storm",
@@ -184,4 +204,61 @@ require("nvim-tree").setup({
             livePreview = true -- Apply theme while picking. Default to true.
         }
     )
+
+vim.cmd("autocmd BufRead,BufNewFile *.p8 set filetype=lua")
+
+vim.api.nvim_create_autocmd({'BufNew', 'BufEnter'}, {
+    pattern = { '*.p8' },
+    callback = function(args)
+        vim.lsp.start({
+            name = 'pico8-ls',
+            cmd = { 'pico8-ls', '--stdio' },
+            root_dir = vim.fs.dirname(vim.api.nvim_buf_get_name(args.buf)),
+            -- Setup your keybinds in the on_attach function
+            on_attach = on_attach,
+        })
+    end
+})
+if vim.g.neovide then
+    local font_size = 9
+    local function set_neovide_text_size(mod)
+        font_size = font_size + mod
+        vim.o.guifont = string.format("FiraCode Nerd Font:h%s", font_size)
+    end
+    vim.o.guifont = string.format("FiraCode Nerd Font:h%s", font_size)
+    --- Copy and Paste
+    vim.keymap.set("v", "<C-S-c>", '"+y') -- Copy
+    vim.keymap.set("n", "<C-S-v>", 'a<space><ESC>"+P') -- Paste normal mode
+    vim.keymap.set("v", "<C-S-v>", 'a<space><ESC>"+P') -- Paste visual mode
+    vim.keymap.set("c", "<C-S-v>", "<C-R>+") -- Paste command mode
+    vim.keymap.set("i", "<C-S-v>", '<ESC>l"+Pli') -- Paste insert mode
+    vim.keymap.set(
+        {"n", "i", "v"},
+        "<C-+>",
+        function()
+            set_neovide_text_size(1)
+        end,
+        {desc = "increase text size"}
+    )
+    vim.keymap.set(
+        {"n", "i", "v"},
+        "<C-_>",
+        function()
+            set_neovide_text_size(-1)
+        end,
+        {desc = "decrease text size"}
+    )
+    --- Padding
+    vim.g.neovide_padding_top = 20
+    vim.g.neovide_padding_bottom = 0
+    vim.g.neovide_padding_right = 10
+    vim.g.neovide_padding_left = 10
+    --- Transparency
+    vim.g.neovide_opacity = 0.9
+    vim.g.neovide_normal_opacity = 0.9
+    --- Animation
+    vim.g.neovide_position_animation_length = 0.10
+    vim.g.neovide_scroll_animation_length = 0.10
+    vim.g.neovide_cursor_animation_length = 0.025
+end
 

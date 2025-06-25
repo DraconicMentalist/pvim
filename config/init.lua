@@ -1,4 +1,6 @@
 local Plug = vim.fn['plug#']
+
+--- Removing any of this will break the config. So uh, don't.
 basedir = os.getenv("PVIM")
 
 for _, name in ipairs({ "config", "data", "state", "cache" }) do
@@ -62,7 +64,6 @@ Plug('ahmedkhalf/project.nvim')
 Plug("zaldih/themery.nvim")
 -- simple and uncontroversial
 Plug("folke/tokyonight.nvim")
-Plug("markbahnman/vim-pico8-color")
 
 vim.call('plug#end')
 
@@ -137,7 +138,6 @@ TSconfig.setup({
   },
       indent = {enable = true}
 })
-vim.treesitter.language.register("lua", "p8") -- make pico8 files syntax highlight as lua
 
 
 ---------------------------
@@ -195,7 +195,6 @@ require("nvim-tree").setup({
     require("themery").setup(
         {
             themes = {
-                "pico8",
                 "tokyonight",
                 "tokyonight-night",
                 "tokyonight-storm",
@@ -207,18 +206,6 @@ require("nvim-tree").setup({
 
 vim.cmd("autocmd BufRead,BufNewFile *.p8 set filetype=lua")
 
-vim.api.nvim_create_autocmd({'BufNew', 'BufEnter'}, {
-    pattern = { '*.p8' },
-    callback = function(args)
-        vim.lsp.start({
-            name = 'pico8-ls',
-            cmd = { 'pico8-ls', '--stdio' },
-            root_dir = vim.fs.dirname(vim.api.nvim_buf_get_name(args.buf)),
-            -- Setup your keybinds in the on_attach function
-            on_attach = on_attach,
-        })
-    end
-})
 if vim.g.neovide then
     local font_size = 9
     local function set_neovide_text_size(mod)
@@ -254,8 +241,8 @@ if vim.g.neovide then
     vim.g.neovide_padding_right = 10
     vim.g.neovide_padding_left = 10
     --- Transparency
-    vim.g.neovide_opacity = 0.9
-    vim.g.neovide_normal_opacity = 0.9
+    vim.g.neovide_opacity = 0.95
+    vim.g.neovide_normal_opacity = 0.95
     --- Animation
     vim.g.neovide_position_animation_length = 0.10
     vim.g.neovide_scroll_animation_length = 0.10

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import os
 import argparse
 from pathlib import Path
@@ -45,7 +46,7 @@ def verify_installs():
         err_str = "Neovim and neovide are both not installed, or aren't available by their normal commands. Neovim at least is needed to run this. Terminating program."
     elif nvim_installed == False:
         err_str = "Neovim isnt' installed, or isn't available by running the nvim command. That's required to run this, so fix that before running this again. Terminating program."
-    elif nvim_installed == True and neovide_installed == False:
+    elif nvim_installed == True and neovide_installed == False and neovide_mode:
         err_str = "Neovide is not available, so this program will not be able to launch in neovide mode."
 
     if nvim_installed is False or neovide_installed is False:
@@ -106,7 +107,7 @@ def run(args):
     if neovide_mode: neovide_argpass = " --"
 
     command = f"{program} {file}{neovide_argpass} --clean -i {shada_path} -u {file_dir}/pvim.lua {nvim_args}"
-    print(command)
+    print(f'starting with command: {command}')
     if neovide_mode: os.system(f"{command} & disown")
     else: os.system(command)
 

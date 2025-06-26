@@ -1,3 +1,4 @@
+-- Use this file as a template for building new modules for your config.
 Plug = vim.fn['plug#']
 
 function config()

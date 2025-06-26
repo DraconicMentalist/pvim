@@ -1,16 +1,21 @@
 Plug = vim.fn['plug#']
 
 --- Removing any of this will break the config. So uh, don't.
-basedir = os.getenv("PVIM")
+Basedir = os.getenv("PVIM")
 
 for _, name in ipairs({ "config", "data", "state", "cache" }) do
-    vim.env[("XDG_%s_HOME"):format(name:upper())] = basedir .. "/nvim-data/" .. name
-end 
+    vim.env[("XDG_%s_HOME"):format(name:upper())] = Basedir .. "/nvim-data/" .. name
+end
+------------------------------------------------------------
 
+--- add any new modules here.
+Modules = { -- modules
+  require("base_themes")
+}
 
+function plug_install()
+vim.call('plug#begin', (Basedir .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
 
-function setup()
-vim.call('plug#begin', (basedir .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
 -------------------
 ------ libraries
 -------------------
@@ -59,17 +64,16 @@ Plug("pipoprods/range-highlight.nvim") -- D: cmd-parser | Pulling from a fork un
 Plug("toppair/reach.nvim")
 -- very important. sets the working directory to the root of whatever project you're working on, usually the root of the git repo.
 Plug('ahmedkhalf/project.nvim')
--------------------
------- aesthetics
--------------------
------ themes
--- theme selection plugin.
-Plug("zaldih/themery.nvim")
--- simple and uncontroversial
-Plug("folke/tokyonight.nvim")
+
+for i in pairs(Modules) do
+  Modules[i].plug_install()
+end
 
 vim.call('plug#end')
+end
 
+
+function config_plugins()
 --------------------------------------------------------
 ------------ settings
 --------------------------------------------------------
@@ -129,11 +133,11 @@ require("mason-lspconfig").setup(
 ---------------------------
 --- treesitter settings
 ---------------------------
-local parser_dir = basedir .. "/clutter/treesitter/"
+local parser_dir = Basedir .. "/clutter/treesitter/"
 
 local TSconfig = require("nvim-treesitter.configs")
 TSconfig.setup({
-  ensure_installed = {"markdown", "markdown_inline", "yaml"},
+  ensure_installed = {"markdown", "markdown_inline", "yaml", 'gdscript'},
   highlight = {
       enable = true,
       additional_vim_regex_highlighting = false
@@ -192,21 +196,6 @@ require("nvim-tree").setup({
     update_root = true
   },
 })
---
--- Themery Config
-    require("themery").setup(
-        {
-            themes = {
-                "tokyonight",
-                "tokyonight-night",
-                "tokyonight-storm",
-                "tokyonight-moon",
-            }, -- Your list of installed colorschemes.
-            livePreview = true -- Apply theme while picking. Default to true.
-        }
-    )
-
-vim.cmd("autocmd BufRead,BufNewFile *.p8 set filetype=lua")
 
 if vim.g.neovide then
     local font_size = 9
@@ -252,10 +241,14 @@ if vim.g.neovide then
 end
 end
 
-function extend()
+function config_modules()
+  for i in pairs(Modules) do
+    Modules[i].config()
+  end
 end
 
 do --- initialization
-  setup()
-  require("extensions").setup()
+  plug_install()
+  config_plugins()
+  config_modules()
 end

@@ -3,7 +3,14 @@ import os
 import argparse
 from pathlib import Path
 
-file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+def resolve_file_dir():
+    initial_path = os.path.abspath(__file__)
+    real_path = os.path.realpath(initial_path)
+    file_dir = Path(os.path.dirname(real_path))
+    return file_dir
+
+file_dir = resolve_file_dir()
+
 os.environ['PVIM'] = str(file_dir)
 
 nvim_installed = False
@@ -19,11 +26,7 @@ pvim_lua = f"{file_dir}/pvim.lua"
 nvim_args = f'--clean -i {shada_path} -u {pvim_lua}'
 extra_args = ''
 
-def resolve_file_dir():
-    global file_dir
-    initial_path = os.path.abspath(__file__)
-    real_path = os.path.realpath(initial_path)
-    file_dir = Path(os.path.dirname(real_path))
+
 
 def setup_parser():
     parser.add_argument('file', nargs='?', type=str, action='store', help="path of the file to open.") 
@@ -115,6 +118,7 @@ def run(args):
     else: os.system(command)
 
 def main():
+    resolve_file_dir()
     setup_parser()
     args = process_arguments()
 

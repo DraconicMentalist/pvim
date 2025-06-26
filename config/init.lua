@@ -1,4 +1,4 @@
-local Plug = vim.fn['plug#']
+Plug = vim.fn['plug#']
 
 --- Removing any of this will break the config. So uh, don't.
 basedir = os.getenv("PVIM")
@@ -7,6 +7,9 @@ for _, name in ipairs({ "config", "data", "state", "cache" }) do
     vim.env[("XDG_%s_HOME"):format(name:upper())] = basedir .. "/nvim-data/" .. name
 end 
 
+
+
+function setup()
 vim.call('plug#begin', (basedir .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
 -------------------
 ------ libraries
@@ -87,8 +90,7 @@ vim.call('plug#end')
     --- line breaks
     vim.opt.conceallevel = 2 -- controls how concealed text is displayed.
     vim.opt.linebreak = true -- activates text wrap
-    vim.opt.breakindent = true -- makes wrapped lines match indentation
-
+    vim.opt.breakindent = true -- makes wrapped lines match indentation    
 ---------------------------
 --- lsp config
 ---------------------------
@@ -248,4 +250,12 @@ if vim.g.neovide then
     vim.g.neovide_scroll_animation_length = 0.10
     vim.g.neovide_cursor_animation_length = 0.025
 end
+end
 
+function extend()
+end
+
+do --- initialization
+  setup()
+  require("extensions").setup()
+end

@@ -47,18 +47,16 @@ def verify_installs():
     global nvim_installed
     global portable
     err_str = ""
-    nvim_installed = os.system('nvim --help >> /dev/null 2>&1') == 0
-    neovide_installed = os.system('neovide --help >> /dev/null 2>&1') == 0
+    nvim_installed = os.system('nvim --help >> /dev/null') == 0
+    neovide_installed = os.system('neovide --help >> /dev/null') == 0
 
-    if nvim_installed == False and neovide_installed == False:
-        err_str = "Neovim and neovide are both not installed, or aren't available by their normal commands. Neovim at least is needed to run this. Terminating program."
-    elif nvim_installed == False:
-        err_str = "Neovim isnt' installed, or isn't available by running the nvim command. That's required to run this, so fix that before running this again. Terminating program."
-    elif nvim_installed == True and neovide_installed == False and neovide_mode:
-        err_str = "Neovide is not available, so this program will not be able to launch in neovide mode."
+    #if nvim_installed == False and neovide_installed == False:
+        #err_str = "Neovim and neovide are both not installed, or aren't available by their normal commands. Neovim at least is needed to run this. Terminating program."
+    #elif nvim_installed == False:
+        #err_str = "Neovim isnt' installed, or isn't available by running the nvim command. That's required to run this, so fix that before running this again. Terminating program."
+    #elif nvim_installed == True and neovide_installed == False and neovide_mode:
+        #err_str = "Neovide is not available, so this program will not be able to launch in neovide mode."
 
-    if err_str != "":
-        raise(err_str)
 
 
 def does_appimage_exist(filename):

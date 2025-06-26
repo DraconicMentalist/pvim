@@ -1,6 +1,7 @@
 Plug = vim.fn['plug#']
 
 function config()
+    vim.cmd('colorscheme tokyonight')
 end
 
 function plug_install()

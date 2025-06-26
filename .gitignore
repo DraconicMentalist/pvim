@@ -1,4 +1,3 @@
 clutter
-nvim.appimage
-/config/plugged/
-nvim-data
+__pycache__
+*.appimage

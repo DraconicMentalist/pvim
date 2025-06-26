@@ -1,4 +1,5 @@
 local dir = os.getenv("PVIM")
+local inst = os.getenv("PVIM_INSTANCE")
 local on_windows = vim.loop.os_uname().version:match 'Windows'
 local function join_paths(...) -- Function from nvim-lspconfig
   local path_sep = on_windows and '\\' or '/'
@@ -20,12 +21,12 @@ if init_type then
   local real_require = require
   local plugins = {
     ["packer"] = function()
-      vim.opt.rtp:append(join_paths(dir, "clutter", "packer"))
-      vim.cmd.set('packpath=' .. join_paths(dir, "clutter", "packer"))
+      vim.opt.rtp:append(join_paths(dir, "clutter", inst, "packer"))
+      vim.cmd.set('packpath=' .. join_paths(dir, "clutter", inst, "packer"))
       vim.g.loaded_remote_plugins = 1
 
       local fn = vim.fn
-      local install_path = join_paths(dir, "clutter", "packer", "pack", "packer", "start", "packer.nvim")
+      local install_path = join_paths(dir, "clutter", inst, "packer", "pack", "packer", "start", "packer.nvim")
       if fn.empty(fn.glob(install_path)) > 0 then
         Packer_bootstrap = fn.system({
           "git",
@@ -40,7 +41,7 @@ if init_type then
       end
     end,
     ["lazy"] = function()
-      local lazypath = join_paths(dir, "clutter", "lazy", "lazy", "lazy.nvim")
+      local lazypath = join_paths(dir, "clutter", inst, "lazy", "lazy", "lazy.nvim")
       if not vim.loop.fs_stat(lazypath) then
         vim.fn.system({
           "git",
@@ -54,19 +55,19 @@ if init_type then
       vim.opt.rtp:prepend(lazypath)
       local lazy_defaults = real_require"lazy.core.config".defaults
       local lazy_cache = real_require"lazy.core.cache"
-      lazy_defaults.root = join_paths(dir, "clutter", "lazy", "lazy")
-      lazy_defaults.lockfile = join_paths(dir, "clutter", "lazy", "lazy-lock.json")
+      lazy_defaults.root = join_paths(dir, "clutter", inst, "lazy", "lazy")
+      lazy_defaults.lockfile = join_paths(dir, "clutter", inst, "lazy", "lazy-lock.json")
       lazy_defaults.performance.rtp.reset = false
       lazy_defaults.performance.rtp.paths = {
-        join_paths(dir, "clutter", "lazy", "lazy"),
+        join_paths(dir, "clutter", inst, "lazy", "lazy"),
       }
-      lazy_defaults.readme.root = join_paths(dir, "clutter", "state", "lazy", "readme")
+      lazy_defaults.readme.root = join_paths(dir, "clutter", inst, "state", "lazy", "readme")
       lazy_cache.enabled = false
-      lazy_cache.path = join_paths(dir, "clutter", "lazy", "cache")
+      lazy_cache.path = join_paths(dir, "clutter", inst, "lazy", "cache")
     end,
     ["mason"] = function()
       real_require"mason".setup({
-        install_root_dir = join_paths(dir,"clutter", "mason")
+        install_root_dir = join_paths(dir,"clutter", inst, "mason")
       })
     end,
   }
@@ -75,8 +76,8 @@ if init_type then
   local function extra_bits(plugin)
     if plugin == "packer" then
       real_require"packer".init({
-        package_root = join_paths(dir, "clutter", "packer", "pack"),
-        compile_path = join_paths(dir, "clutter", "packer", "plugin", "packer_compiled.lua"),
+        package_root = join_paths(dir, "clutter", inst, "packer", "pack"),
+        compile_path = join_paths(dir, "clutter", inst, "packer", "plugin", "packer_compiled.lua"),
       })
     end
   end
@@ -97,7 +98,7 @@ if init_type then
 end -- of if init
 
 -- overwrite some settings
-vim.opt.undodir = join_paths(dir, "clutter", "undo")
+vim.opt.undodir = join_paths(dir, "clutter", inst, "undo")
 vim.opt.swapfile = false
 vim.opt.backup = false
 

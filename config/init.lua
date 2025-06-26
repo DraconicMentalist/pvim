@@ -2,9 +2,10 @@ Plug = vim.fn['plug#']
 
 --- Removing any of this will break the config. So uh, don't.
 Basedir = os.getenv("PVIM")
+Instance = os.getenv("PVIM_INSTANCE")
 
 for _, name in ipairs({ "config", "data", "state", "cache" }) do
-    vim.env[("XDG_%s_HOME"):format(name:upper())] = Basedir .. "/nvim-data/" .. name
+    vim.env[("XDG_%s_HOME"):format(name:upper())] = Basedir .. "/clutter/" .. Instance .. "/" .. name
 end
 ------------------------------------------------------------
 
@@ -13,8 +14,8 @@ Modules = { -- modules
   require("base_themes")
 }
 
-function plug_install()
-vim.call('plug#begin', (Basedir .. "/config/plugged/")) -- initialize plugins, install to a directory in this config folder.
+local function plug_install()
+vim.call('plug#begin', (Basedir .. "/" .. "/clutter/" .. Instance .. "/plugged")) -- initialize plugins, install to a directory in this config folder.
 
 -------------------
 ------ libraries
@@ -73,7 +74,7 @@ vim.call('plug#end')
 end
 
 
-function config_plugins()
+local function config_plugins()
 --------------------------------------------------------
 ------------ settings
 --------------------------------------------------------
@@ -241,7 +242,7 @@ if vim.g.neovide then
 end
 end
 
-function config_modules()
+local function config_modules()
   for i in pairs(Modules) do
     Modules[i].config()
   end

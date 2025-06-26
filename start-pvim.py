@@ -2,16 +2,7 @@
 import os
 import argparse
 from pathlib import Path
-
-def resolve_file_dir():
-    initial_path = os.path.abspath(__file__)
-    real_path = os.path.realpath(initial_path)
-    file_dir = Path(os.path.dirname(real_path))
-    return file_dir
-
-file_dir = resolve_file_dir()
-
-os.environ['PVIM'] = str(file_dir)
+import instance as inst
 
 nvim_installed = False
 neovide_installed = False
@@ -21,9 +12,6 @@ neovide_mode = False
 appfile_name = ""
 
 parser = argparse.ArgumentParser()
-shada_path = f"{file_dir}/clutter/shada/state"
-pvim_lua = f"{file_dir}/pvim.lua"
-nvim_args = f'--clean -i {shada_path} -u {pvim_lua}'
 extra_args = ''
 
 
@@ -32,7 +20,7 @@ def setup_parser():
     parser.add_argument('file', nargs='?', type=str, action='store', help="path of the file to open.") 
     parser.add_argument('args', nargs='?', type=str, action='store', help='pass along the arguments to neovim or neovide.')
     parser.add_argument('-n', '--neovide', action='store_true', help="open a neovide window instead of running neovim.")
-    parser.add_argument('-p', '--portable', action='store_true', help=f"run in portable mode. looks for appimages in {file_dir}, and downloads them if they're not there.")
+    parser.add_argument('-p', '--portable', action='store_true', help=f"run in portable mode. looks for appimages in {inst.file_dir}, and downloads them if they're not there.")
 
 def process_arguments():
     args = parser.parse_args()
@@ -60,8 +48,8 @@ def verify_installs():
 
 
 def does_appimage_exist(filename):
-    exists = os.path.isfile(f'{file_dir}/{filename}')
-    if exists: os.system(f'chmod +x {file_dir}/{appfile_name}')
+    exists = os.path.isfile(f'{inst.file_dir}/{filename}')
+    if exists: os.system(f'chmod +x {inst.file_dir}/{appfile_name}')
     return exists
 
 def satisfy_portable():
@@ -73,13 +61,13 @@ def satisfy_portable():
         if does_appimage_exist("nvim-linux-x86_64.appimage") is False:
             print('portable mode: neovim not installed on system. Attempting to download neovim!')
             install_dependency(f'https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.appimage')
-            os.system(f'chmod +x {file_dir}/nvim-linux-x86_64.appimage')
+            os.system(f'chmod +x {inst.file_dir}/nvim-linux-x86_64.appimage')
 
     if neovide_installed is False and neovide_mode:
         if does_appimage_exist("neovide.Appimage") is False:
             print('portable mode: neovide not installed on system. Attempting to download neovide!')
             install_dependency(f'https://github.com/neovide/neovide/releases/download/0.15.0/neovide.Appimage')
-            os.system(f'chmod +x {file_dir}/neovide.Appimage')
+            os.system(f'chmod +x {inst.file_dir}/neovide.Appimage')
 
 
 def install_dependency(url: str):
@@ -89,7 +77,7 @@ def install_dependency(url: str):
     else: "Dependency sucessfully installed!"
 
 def run_from_folder(filename: str):
-    path = f"{file_dir}/{filename}"
+    path = f"{inst.file_dir}/{filename}"
     print(path)
     if os.path.isfile():
         os.system(path)
@@ -101,22 +89,21 @@ def run(args):
     nvim_args = ''
     if args.file: file = args.file
     if args.args: nvim_args = args.args
-    program = f'{file_dir}/{appfile_name}'
+    program = f'{inst.file_dir}/{appfile_name}'
     if neovide_mode: 
         if neovide_installed: program = "neovide"
         else:
             if nvim_installed is False:
-                program = f'{program} --neovim-bin {file_dir}/nvim-linux-x86_64.appimage'
+                program = f'{program} --neovim-bin {inst.file_dir}/nvim-linux-x86_64.appimage'
     elif nvim_installed: program = "nvim"
     if neovide_mode: neovide_argpass = " --"
 
-    command = f"{program} {file}{neovide_argpass} --clean -i {shada_path} -u {file_dir}/pvim.lua {nvim_args}"
+    command = f"{program} {file}{neovide_argpass} --clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua {nvim_args}"
     print(f'starting with command: {command}')
     if neovide_mode: os.system(f"{command} & disown")
     else: os.system(command)
 
 def main():
-    resolve_file_dir()
     setup_parser()
     args = process_arguments()
 

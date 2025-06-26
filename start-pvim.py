@@ -5,7 +5,6 @@ from pathlib import Path
 
 file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 os.environ['PVIM'] = str(file_dir)
-os.chdir(file_dir)
 
 nvim_installed = False
 neovide_installed = False
@@ -19,6 +18,12 @@ shada_path = f"{file_dir}/clutter/shada/state"
 pvim_lua = f"{file_dir}/pvim.lua"
 nvim_args = f'--clean -i {shada_path} -u {pvim_lua}'
 extra_args = ''
+
+def resolve_file_dir():
+    global file_dir
+    initial_path = os.path.abspath(__file__)
+    real_path = os.path.realpath(initial_path)
+    file_dir = Path(os.path.dirname(real_path))
 
 def setup_parser():
     parser.add_argument('file', nargs='?', type=str, action='store', help="path of the file to open.") 
@@ -49,10 +54,8 @@ def verify_installs():
     elif nvim_installed == True and neovide_installed == False and neovide_mode:
         err_str = "Neovide is not available, so this program will not be able to launch in neovide mode."
 
-    if nvim_installed is False or neovide_installed is False:
-        if portable is False:
-            raise Exception(err_str)
-
+    if err_str != "":
+        raise(err_str)
 
 
 def does_appimage_exist(filename):

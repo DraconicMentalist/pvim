@@ -18,7 +18,7 @@ extra_args = ''
 
 def setup_parser():
     parser.add_argument('file', nargs='?', type=str, action='store', help="path of the file to open.") 
-    parser.add_argument('args', nargs='?', type=str, action='store', help='pass along the arguments to neovim or neovide.')
+    parser.add_argument('-a', '--args', type=str, action='store', help='pass along the arguments to neovim or neovide.')
     parser.add_argument('-n', '--neovide', action='store_true', help="open a neovide window instead of running neovim.")
     parser.add_argument('-p', '--portable', action='store_true', help=f"run in portable mode. looks for appimages in {inst.file_dir}, and downloads them if they're not there.")
 
@@ -36,7 +36,12 @@ def verify_installs():
     global portable
     err_str = ""
     nvim_installed = os.system('nvim --help >> /dev/null') == 0
-    neovide_installed = os.system('neovide --help >> /dev/null') == 0
+    neovide_installed = False
+    counter = 0
+    while neovide_installed == False:
+        neovide_installed = os.system('neovide --version >> /dev/null') == 0
+        counter += 1
+        if counter > 10: break
 
     #if nvim_installed == False and neovide_installed == False:
         #err_str = "Neovim and neovide are both not installed, or aren't available by their normal commands. Neovim at least is needed to run this. Terminating program."

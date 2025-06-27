@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import instance as inst
 
-pvim_path = f'{inst.file_dir}/start-pvim.py'
+pvim_path = f'{inst.app_dir}/src/start.sh'
 
 def install():
     os.system(f'chmod +x {pvim_path}')

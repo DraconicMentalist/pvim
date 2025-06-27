@@ -10,9 +10,7 @@ end
 ------------------------------------------------------------
 
 --- add any new modules here.
-Modules = { -- modules
-  require("base_themes")
-}
+Modules = require("modules")
 
 local function plug_install()
 vim.call('plug#begin', (Basedir .. "/" .. "/clutter/" .. Instance .. "/plugged")) -- initialize plugins, install to a directory in this config folder.

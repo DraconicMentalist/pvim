@@ -1,34 +1,59 @@
 #!/usr/bin/python
 import os
-import argparse
+import sys
 from pathlib import Path
 import instance as inst
+from enum import Enum
 
-nvim_installed = False
-neovide_installed = False
-portable = False
-neovide_mode = False
+def parse():
+    argv = sys.argv
+    argv.pop(0)
+    args = {
+            "neovide": False,
+            "portable": False,
+            "help": False,
+            "neovide_args": [],
+            "nvim_args": [],
+            }
 
-appfile_name = ""
+    while len(argv) > 0:
+        arg = argv.pop(0)
+        args = eval_arg(arg, args)
 
-parser = argparse.ArgumentParser()
-extra_args = ''
+    if len(args["neovide_args"]) > 0:
+        args["neovide_args"].pop(0)
+    if len(args["nvim_args"]) > 0:
+        args["nvim_args"].pop(0)
 
-
-
-def setup_parser():
-    parser.add_argument('file', nargs='?', type=str, action='store', help="path of the file to open.") 
-    parser.add_argument('-a', '--args', type=str, action='store', help='pass along the arguments to neovim or neovide.')
-    parser.add_argument('-n', '--neovide', action='store_true', help="open a neovide window instead of running neovim.")
-    parser.add_argument('-p', '--portable', action='store_true', help=f"run in portable mode. looks for appimages in {inst.file_dir}, and downloads them if they're not there.")
-
-def process_arguments():
-    args = parser.parse_args()
-    global neovide_mode
-    global portable
-    portable = args.portable
-    neovide_mode = args.neovide
+    print(f"found arguments: {args}")
     return args
+
+# modes
+# 0: normal eval
+# 1: neovide args
+# 2: nvim args
+parse_mode: int = 0
+def eval_arg(arg:str, result:dict):
+    global parse_mode
+    match arg:
+        case "-a" | "--neovide_args":
+            if parse_mode != 2: parse_mode = 1
+        case "--":
+            parse_mode = 2
+    match parse_mode:
+        case 1:
+            result["neovide_args"].append(arg)
+        case 2:
+            result["nvim_args"].append(arg)
+    match arg:
+        case "-n" | "--neovide": 
+            result["neovide"] = True
+        case "-p" | "--portable":
+            result["portable"] = True
+        case "--help":
+            result["help"] = True
+    return result
+
 
 def verify_installs():
     global neovide_installed
@@ -52,27 +77,27 @@ def verify_installs():
 
 
 
-def does_appimage_exist(filename):
-    exists = os.path.isfile(f'{inst.file_dir}/{filename}')
-    if exists: os.system(f'chmod +x {inst.file_dir}/{appfile_name}')
-    return exists
+#def does_appimage_exist(filename):
+    #exists = os.path.isfile(f'{inst.file_dir}/{filename}')
+    #if exists: os.system(f'chmod +x {inst.file_dir}/{appfile_name}')
+    #return exists
 
-def satisfy_portable():
-    if os.system('wget --help >> /dev/null 2>&1') != 0:
-        raise Exception("wget command doesn't work! This is likely because it isn't installed, so please go install that.")
-
-
-    if nvim_installed is False:
-        if does_appimage_exist("nvim-linux-x86_64.appimage") is False:
-            print('portable mode: neovim not installed on system. Attempting to download neovim!')
-            install_dependency(f'https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.appimage')
-            os.system(f'chmod +x {inst.file_dir}/nvim-linux-x86_64.appimage')
-
-    if neovide_installed is False and neovide_mode:
-        if does_appimage_exist("neovide.Appimage") is False:
-            print('portable mode: neovide not installed on system. Attempting to download neovide!')
-            install_dependency(f'https://github.com/neovide/neovide/releases/download/0.15.0/neovide.Appimage')
-            os.system(f'chmod +x {inst.file_dir}/neovide.Appimage')
+#def satisfy_portable():
+    #if os.system('wget --help >> /dev/null 2>&1') != 0:
+        #raise Exception("wget command doesn't work! This is likely because it isn't installed, so please go install that.")
+#
+#
+    #if nvim_installed is False:
+        #if does_appimage_exist("nvim-linux-x86_64.appimage") is False:
+            #print('portable mode: neovim not installed on system. Attempting to download neovim!')
+            #install_dependency(f'https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.appimage')
+            #os.system(f'chmod +x {inst.file_dir}/nvim-linux-x86_64.appimage')
+#
+    #if neovide_installed is False and neovide_mode:
+        #if does_appimage_exist("neovide.Appimage") is False:
+            #print('portable mode: neovide not installed on system. Attempting to download neovide!')
+            #install_dependency(f'https://github.com/neovide/neovide/releases/download/0.15.0/neovide.Appimage')
+            #os.system(f'chmod +x {inst.file_dir}/neovide.Appimage')
 
 
 def install_dependency(url: str):
@@ -87,39 +112,23 @@ def run_from_folder(filename: str):
     if os.path.isfile():
         os.system(path)
 
-def run(args):
-    program = ""
-    neovide_argpass = ""
-    file = ''
-    nvim_args = ''
-    if args.file: file = args.file
-    if args.args: nvim_args = args.args
-    program = f'{inst.file_dir}/{appfile_name}'
-    if neovide_mode: 
-        if neovide_installed: program = "neovide"
-        else:
-            if nvim_installed is False:
-                program = f'{program} --neovim-bin {inst.file_dir}/nvim-linux-x86_64.appimage'
-    elif nvim_installed: program = "nvim"
-    if neovide_mode: neovide_argpass = " --"
-
-    command = f"{program} {file}{neovide_argpass} --clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua {nvim_args}"
-    print(f'starting with command: {command}')
-    if neovide_mode: os.system(f"{command} & disown")
-    else: os.system(command)
+def run(args: dict):
+    neovide_args = " ".join(args["neovide_args"])
+    nvim_args = " ".join(args["nvim_args"])
+    pvim_args = f"--clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua"
+    cmd = ""
+    if args["neovide"]:
+        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args}"
+    else:
+        cmd = f"nvim {pvim_args} {nvim_args}"
+    print(f"starting with command: {cmd}")
+    os.system(cmd)
 
 def main():
-    setup_parser()
-    args = process_arguments()
-
-    global portable
-    global neovide_mode
-    global appfile_name
-    if neovide_mode is False: appfile_name = "nvim-linux-x86_64.appimage"
-    else: appfile_name = "neovide.Appimage"
-
-    verify_installs()
-    if portable: satisfy_portable()
+    args = parse()
+    #post_parse()
+    #verify_installs()
+    #if portable: satisfy_portable()
     run(args)
 
 if __name__ == "__main__":

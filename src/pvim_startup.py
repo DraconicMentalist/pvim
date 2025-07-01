@@ -42,11 +42,15 @@ def eval_arg(arg:str, result:dict):
             if parse_mode != 2: parse_mode = 1
         case "--":
             parse_mode = 2
+    if arg.startswith("-") == False and arg.startswith("--") == False:
+        arg = f"""\"{arg}\""""
     match parse_mode:
         case 1:
             result["neovide_args"].append(arg)
+            return result
         case 2:
             result["nvim_args"].append(arg)
+            return result
     match arg:
         case "-n" | "--neovide": 
             result["neovide"] = True
@@ -117,17 +121,23 @@ def run_from_folder(filename: str):
         os.system(path)
 
 def run(args: dict):
+    if args["help"]:
+        help()
+        return
     neovide_args = " ".join(args["neovide_args"])
     nvim_args = " ".join(args["nvim_args"])
-    pvim_args = f"--clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua"
+    pvim_args = f"""--clean -i "{inst.shada_path}" -u "{inst.file_dir}/pvim.lua" """
     cmd = ""
     unrecognized = " ".join(args["unrecognized"])
     if args["neovide"]:
-        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args} {unrecognized}"
+        cmd = f"""neovide {neovide_args} -- {pvim_args} {nvim_args} {unrecognized}"""
     else:
-        cmd = f"nvim {pvim_args} {nvim_args} {unrecognized}"
-    print(f"starting with command: {cmd}")
+        cmd = f"""nvim {pvim_args} {nvim_args} {unrecognized}"""
+    print(f"""starting with command: {cmd}""")
     os.system(cmd)
+
+def help():
+    print("help not yet implemented! Just ask camilla how to use this...")
 
 def main():
     args = parse()

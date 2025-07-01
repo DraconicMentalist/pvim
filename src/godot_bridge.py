@@ -13,10 +13,8 @@ def start():
     nvide_mod = 0
     passthrough_args = []
     if neovide: nvide_mod = 1
-    print(len(pvim_args))
     if len(pvim_args) >= 3+nvide_mod:
         passthrough_args = pvim_args[3+nvide_mod:]
-        print(pvim_args[3+nvide_mod:])
     run_server(pvim_args[0], pvim_args[1], pvim_args[2], neovide, passthrough_args)
 
 def check_neovide(pvim_args):
@@ -34,6 +32,7 @@ def run_server(file: str, line: int, column: int, neovide: bool = False, passthr
     print(file, line, column, neovide, passthrough)
     file = os.path.abspath(file)
     passthrough_str = " ".join(passthrough)
+    print (passthrough)
     prog_name = "nvim"
     if neovide: prog_name = "neovide --"
     if os.system(f"{inst.NAME} --help") == 0:
@@ -42,11 +41,12 @@ def run_server(file: str, line: int, column: int, neovide: bool = False, passthr
     print(server_exists())
     if server_exists() is False:
         cmd = f"""{prog_name} "{file}" --listen "{server_path}" """
-        print(cmd)
+        print(f"opening server with: {cmd}")
         os.system(cmd)
-    cmd = f"""{prog_name} --server "{server_path}" --remote-send "<C-\\><C-N>:n {file}<CR>:call cursor({line},{column})<CR>" {passthrough_str}"""
-    print(cmd)
-    os.system(cmd)
+        return
+    cmdd = f"""{prog_name} -- --server "{server_path}" --remote-send "<C-\\><C-N>:n {file}<CR>:call cursor({line},{column})<CR>" {passthrough_str}"""
+    print(f"""starting up instance:{cmdd}""")
+    os.system(cmdd)
 
 
 def main():

@@ -121,10 +121,11 @@ def run(args: dict):
     nvim_args = " ".join(args["nvim_args"])
     pvim_args = f"--clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua"
     cmd = ""
+    unrecognized = " ".join(args["unrecognized"])
     if args["neovide"]:
-        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args} {args["unrecognized"]}"
+        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args} {unrecognized}"
     else:
-        cmd = f"nvim {pvim_args} {nvim_args} {args["unrecognized"]}"
+        cmd = f"nvim {pvim_args} {nvim_args} {unrecognized}"
     print(f"starting with command: {cmd}")
     os.system(cmd)
 

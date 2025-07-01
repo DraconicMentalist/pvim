@@ -1,41 +1,56 @@
 #!/usr/bin/python
-import argparse
 import os
-from sh import ghostty
-from sh import run
+import sys
 import instance as inst
 
 server_path = "/tmp/godot.pipe"
 terminal_name = "ghostty -e"
 
-def setup_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', help="filepath to pipe in.")
-    parser.add_argument('line', help="line number.")
-    parser.add_argument('column', help="cursor column.")
-    parser.add_argument('-n', '--neovide', action='store_true',  help="start in neovide mode.")
-    return parser
+def start():
+    args = sys.argv
+    pvim_args = args[1:]
+    neovide = check_neovide(pvim_args)
+    nvide_mod = 0
+    passthrough_args = []
+    if neovide: nvide_mod = 1
+    print(len(pvim_args))
+    if len(pvim_args) >= 3+nvide_mod:
+        passthrough_args = pvim_args[3+nvide_mod:]
+        print(pvim_args[3+nvide_mod:])
+    run_server(pvim_args[0], pvim_args[1], pvim_args[2], neovide, passthrough_args)
+
+def check_neovide(pvim_args):
+    if len(pvim_args) < 4: return False
+    if pvim_args[3] == "-n" or pvim_args[3] == "--neovide":
+        return True
+    else: return False
+
 
 def server_exists():
-    return os.path.isfile(server_path)
+    print(f"path:{server_path}")
+    return os.path.exists(server_path)
+
+def run_server(file: str, line: int, column: int, neovide: bool = False, passthrough: list = []):
+    print(file, line, column, neovide, passthrough)
+    file = os.path.abspath(file)
+    passthrough_str = " ".join(passthrough)
+    prog_name = "nvim"
+    if neovide: prog_name = "neovide --"
+    if os.system(f"{inst.NAME} --help") == 0:
+        prog_name = inst.NAME
+        if neovide: prog_name += " -n"
+    print(server_exists())
+    if server_exists() is False:
+        cmd = f"""{prog_name} "{file}" --listen "{server_path}" """
+        print(cmd)
+        os.system(cmd)
+    cmd = f"""{prog_name} --server "{server_path}" --remote-send "<C-\\><C-N>:n {file}<CR>:call cursor({line},{column})<CR>" {passthrough_str}"""
+    print(cmd)
+    os.system(cmd)
+
 
 def main():
-    args = setup_parser().parse_args()
-    neovide = ""
-    if args.neovide: neovide = "-n"
-    program = f"{inst.NAME}"
-    if server_exists() == False: 
-        cmd = f"{program} {neovide} {args.file} -a"
-        cmd += f" '--listen {server_path}'"
-        if not args.neovide: cmd = f'{terminal_name} "{cmd}"'
-        cmd += ">/dev/null 2>&1 & disown"
-        print(f"server doesn't exist. Making it: {cmd}")
-        os.system(cmd)
-    comms = f"{program} {neovide} -a"
-    server = f"--server {server_path}" 
-    send = f'--remote-send "<C-\\><C-N>:n {args.file}<CR>:call cursor({args.line},{args.column})<CR>\"'
-    command = f"{comms} '{server} {send}'"
-    os.system(command)
-
+    start()
+ 
 if __name__ == "__main__":
     main()

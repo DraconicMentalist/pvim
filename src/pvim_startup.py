@@ -14,6 +14,8 @@ def parse():
             "help": False,
             "neovide_args": [],
             "nvim_args": [],
+            "filepath": "",
+            "unrecognized" : []
             }
 
     while len(argv) > 0:
@@ -52,6 +54,8 @@ def eval_arg(arg:str, result:dict):
             result["portable"] = True
         case "--help":
             result["help"] = True
+        case _:
+            result["unrecognized"].append(arg)
     return result
 
 
@@ -118,9 +122,9 @@ def run(args: dict):
     pvim_args = f"--clean -i {inst.shada_path} -u {inst.file_dir}/pvim.lua"
     cmd = ""
     if args["neovide"]:
-        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args}"
+        cmd = f"neovide {neovide_args} -- {pvim_args} {nvim_args} {args["unrecognized"]}"
     else:
-        cmd = f"nvim {pvim_args} {nvim_args}"
+        cmd = f"nvim {pvim_args} {nvim_args} {args["unrecognized"]}"
     print(f"starting with command: {cmd}")
     os.system(cmd)
 

@@ -3,7 +3,7 @@ from pathlib import Path
 
 # change this to change the name of your instance. each unique name gets its own folder to store its files in.
 # this will also be used as the name of the command, if you install this.
-NAME = "pvim"
+NAME = "norg"
 
 def resolve_file_dir():
     initial_path = os.path.abspath(__file__)

@@ -1,3 +1,4 @@
 return {
-  require("base_themes")
+  require("base_themes"),
+  require("org_mode")
 }
